@@ -12,6 +12,8 @@ public record ConnectionInfo(
         String shortId,
         String fingerprint,
         String network,
-        String location,
+        String city,
+        String country,
+        String label,
         String vlessLink) {
 }

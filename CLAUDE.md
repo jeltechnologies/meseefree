@@ -112,12 +112,14 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   watcher hot-swaps a changed cert/key pair into Tomcat with **no restart**, which is what makes
   unattended renewal possible.
   - **Volume mount**: `portal`'s main `./data:/etc/xray:ro` mount is read-only, but
-    `docker-compose.yaml` adds a second, more specific mount, `./data/tls:/etc/xray/tls` (no
-    `:ro`), which overrides the parent for just that subdirectory — Docker resolves the more
-    specific bind mount for any path under it. The portal genuinely needs to write here (to
-    persist `acme-account.key`, and to install/renew Let's Encrypt certs), while `identity.env`/
-    `config.json` stay read-only since the portal never touches those. If you ever see ACME
-    renewal failing with a read-only-filesystem error, this mount is the first thing to check.
+    `docker-compose.yaml` adds two more specific mounts that override the parent for just those
+    paths — Docker resolves the more specific bind mount for any path under it. `./data/tls:/etc/xray/tls`
+    (no `:ro`): the portal genuinely needs to write here (to persist `acme-account.key`, and to
+    install/renew Let's Encrypt certs). `./data/config.json:/etc/xray/config.json` (no `:ro`): the
+    portal writes the connection label into the client's `email` field here (see "Connection
+    label" below) — `identity.env` stays read-only, the portal never touches that one. If you ever
+    see ACME renewal (or a label rename) failing with a read-only-filesystem error, these mounts
+    are the first thing to check.
   - **Self-signed fallback**: `generate-identity.sh` generates `active.crt`/`active.key` with
     `openssl req -x509` the same way it's idempotent about `identity.env` — if the files already
     exist, it leaves them alone (checked independently of the identity block, so rotating one
@@ -140,6 +142,17 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
     plain-HTTP Tomcat connector on `acme.http-port` (8880) that Let's Encrypt actually reaches. Any
     ACME failure (DNS not propagated, port 80 unreachable, rate limits) is caught and logged — it
     never crashes the app or disturbs the currently-active cert.
+  - **DNS mismatch warning**: `connection/DomainDnsCheckService` checks — same
+    `ApplicationReadyEvent`-plus-`@Scheduled` shape as `AcmeCertificateService` above (background
+    thread on startup so a slow DNS server can't delay boot, then rechecked every 10 minutes so the
+    warning clears itself once DNS propagates, no portal restart needed) — whether `DOMAIN` actually
+    resolves (`InetAddress.getAllByName`, filtered to `Inet4Address`) to
+    `ConnectionInfoProvider.publicIp()`. A no-op whenever no domain is configured. On a mismatch (or
+    an unresolvable domain), it logs a warning with the addresses it actually found and the status
+    page shows a red banner — this is the same DNS precondition the VLESS address (see "The public
+    IP is not hardcoded anywhere" above) and the ACME flow just above both silently depend on, so
+    this surfaces it instead of leaving the operator to guess why clients can't connect or
+    certificates won't renew.
   - **`PortalAuthFilter` carves out two exceptions** for this to work: requests to
     `/.well-known/acme-challenge/**` skip both the "not configured" 500 and Basic Auth entirely
     (any connector); requests landing on the plain-HTTP connector (`request.getLocalPort() ==
@@ -175,11 +188,39 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   loading — fails, the exception propagates out of Spring context startup; `PortalApplication.main`
   catches it, logs, and calls `System.exit(1)`, relying on Docker's `restart: unless-stopped` to retry.
   `PUBLIC_IP`/`VLESS_LINK` are not environment variables — don't reintroduce them as hardcoded env vars
-  in `docker-compose.yaml`.
+  in `docker-compose.yaml`. **If `DOMAIN` is configured** (same `PortalProperties.domainConfigured()`
+  check used for the ACME flow — DNS already has to point at this server for that to work), the VLESS
+  link's address — and therefore the status page's "Address" field, `/json`, and the QR code, since
+  they all derive from the one `ConnectionInfo.address` field — uses the domain instead of the public
+  IP; the public IP is still fetched and still used for the geoip location label either way, since
+  that lookup only works by IP. This is re-evaluated on every portal startup, not just the first —
+  toggling `DOMAIN` in `.env` and recreating the portal (`docker compose up -d portal`) is enough,
+  `xray`/`init` don't need touching since REALITY's server side doesn't care what hostname a client
+  resolved to reach it. Clients that already imported the old IP-based link keep connecting fine but
+  won't auto-switch — they'd need to re-scan the QR code / re-import the link to pick up the domain.
+- **Connection label.** `ConnectionInfo.label` is the VLESS link's display name (the `#...` URI
+  fragment client apps show) and also the status page's "Access to {label}" heading — one field,
+  reused both places, like `address` above. It defaults to `"Me See Free - " + city + ", " +
+  country"` (the same geoip lookup used for the old location-only label), unless a renamed value is
+  already present in `config.json`. The status page's "Label" field lets the operator rename it at
+  any time via `POST /rename` (`PortalController`) → `ConnectionInfoProvider.rename(String)`, which
+  updates the in-memory `AtomicReference<ConnectionInfo>` immediately (no portal restart — this is
+  the one field in `ConnectionInfoProvider` that isn't frozen at startup) and persists the new value
+  via `XrayClientLabelStore` into the xray client's own `email` field in `config.json` — a real
+  field xray understands (used in its own access-log lines to identify a client), chosen specifically
+  so the label survives an `xray` restart rather than living only in portal memory. The write goes
+  into `config.json`'s existing inode (open + truncate, not a temp-file rename), same invariant
+  `generate-identity.sh` follows for this file. Two things to note: `xray` only reads `config.json`
+  at its own startup (same as the identity-rotation caveat above), so a rename only shows up in
+  `xray`'s own logs after `docker compose restart xray` — the REALITY handshake itself never reads
+  or cares about this field, so connections work identically regardless. And rotating the identity
+  (deleting `identity.env`/`config.json` to regenerate from `init/config.template.json`) also resets
+  the label back to the geoip default, since that regenerates `config.json` from scratch.
 - Portal routes (all HTTPS, all Basic-Auth-gated): `/` (HTML status page), `/json` and `/api`
-  (connection info as JSON), `/qr` (PNG QR code of the VLESS link). Plus one unauthenticated route on
-  the plain-HTTP port only: `/.well-known/acme-challenge/{token}` (see "TLS / HTTPS"). All other
+  (connection info as JSON), `/qr` (PNG QR code of the VLESS link), `POST /rename` (renames the
+  connection label — see "Connection label" above). Plus one unauthenticated route on the
+  plain-HTTP port only: `/.well-known/acme-challenge/{token}` (see "TLS / HTTPS"). All other
   connection details read from env vars set by `docker-compose.yaml`; there's no config file for the
-  portal.
+  portal (except the connection label, written to `data/config.json`).
 - `data/config.json` blocks private and China (`geoip:cn`) IP ranges via routing rules — keep
   this in mind if debugging connectivity that looks like a routing rejection rather than a proxy failure.

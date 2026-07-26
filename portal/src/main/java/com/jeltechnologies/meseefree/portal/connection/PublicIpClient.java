@@ -40,7 +40,7 @@ public class PublicIpClient {
         return ip;
     }
 
-    public String fetchLocation(String ip) {
+    public GeoLocation fetchGeoLocation(String ip) {
         try {
             HttpRequest request = HttpRequest.newBuilder(
                             URI.create("http://ip-api.com/json/" + ip + "?fields=status,country,city"))
@@ -58,10 +58,10 @@ public class PublicIpClient {
                 throw new IOException("ip-api.com lookup failed");
             }
             String city = data.path("city").asText("");
-            return city.isEmpty() ? country : city + ", " + country;
+            return new GeoLocation(city, country);
         } catch (Exception e) {
             log.warn("Location lookup failed, falling back to default label: {}", e.getMessage());
-            return FALLBACK_LABEL;
+            return new GeoLocation("", FALLBACK_LABEL);
         }
     }
 }

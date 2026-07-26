@@ -1,4 +1,4 @@
-# Net Sovereignty in a Box
+# Me See Free
 
 A self-hosted VLESS+REALITY proxy, deployed in minutes with zero networking expertise.
 

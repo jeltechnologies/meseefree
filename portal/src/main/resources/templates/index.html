@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="theme-color" content="#F7F5EF"/>
-<title th:text="'Net Sovereignty in a Box - ' + ${info.location}">Net Sovereignty in a Box - Server Location</title>
+<title th:text="${info.label}">Me See Free - Server Location</title>
 <style>
   :root{
     --page:      #EFEAD9;
@@ -15,6 +15,7 @@
     --accent:    #B54E1D;
     --line:      #D9D2BC;
     --success:   #2F7D4F;
+    --error:     #B3261E;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, "Liberation Mono", monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
   }
@@ -71,27 +72,6 @@
     text-transform:uppercase;
     min-width:0;
   }
-  .stamp{
-    font-family:var(--mono);
-    font-size:.62rem;
-    font-weight:700;
-    letter-spacing:.16em;
-    color:var(--accent);
-    border:1.5px solid var(--accent);
-    border-radius:4px;
-    padding:3px 8px;
-    transform:rotate(-3deg);
-    display:inline-flex;
-    align-items:center;
-    gap:5px;
-  }
-  .stamp::before{
-    content:"";
-    width:6px;height:6px;border-radius:50%;
-    background:var(--accent);
-    box-shadow:0 0 0 3px rgba(181,78,29,.18);
-  }
-
   .pass-body{
     display:grid;
     grid-template-columns:200px 1px 1fr;
@@ -125,13 +105,6 @@
     text-transform:uppercase;
     color:var(--ink);
   }
-  .stub-apps{
-    margin:0;
-    font-size:.68rem;
-    color:var(--label);
-    line-height:1.5;
-  }
-
   .seam{
     position:relative;
     background:
@@ -165,14 +138,6 @@
     text-transform:uppercase;
     color:var(--label);
   }
-  .ticket-no{
-    font-family:var(--mono);
-    font-size:.72rem;
-    color:var(--ink);
-    font-weight:600;
-  }
-  .ticket-no span{color:var(--accent)}
-
   .fields{margin:0}
   .field{
     display:grid;
@@ -222,6 +187,41 @@
   }
   .copy:hover{background:rgba(181,78,29,.08)}
   .copy.is-copied{color:var(--success);background:rgba(47,125,79,.1)}
+
+  .rename-form{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+  .rename-input{
+    font-family:var(--mono);
+    font-size:.82rem;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:4px 8px;
+    min-width:0;
+    flex:1;
+  }
+  .rename-input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .rename-error{
+    font-size:.72rem;
+    color:var(--error);
+    margin:-8px 0 12px;
+  }
+
+  .dns-warning{
+    width:100%;
+    max-width:720px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#FBEAEA;
+    border:1px solid var(--error);
+    color:var(--error);
+    border-radius:12px;
+    padding:12px 16px;
+    margin:0 0 16px;
+    font-size:.82rem;
+    line-height:1.4;
+  }
 
   .barcode{
     border-top:0;
@@ -301,28 +301,52 @@
 </head>
 <body>
 
+<p class="dns-warning" th:if="${dnsMismatch}">
+  &#9888; DOMAIN doesn't currently resolve to this server's IP address. VLESS clients and Let's
+  Encrypt renewal may fail until DNS is updated to point at this server.
+</p>
+
 <main class="pass">
   <div class="pass-head">
-    <span class="brand" th:text="'&#10022; Access to ' + ${info.location}">&#10022; Access to City, Country</span>
-    <span class="stamp">Live</span>
+    <span class="brand" th:text="'&#10022; Access to ' + ${info.label}">&#10022; Access to City, Country</span>
   </div>
+  <p class="rename-error" th:if="${renameError}">Label must not be blank.</p>
 
   <div class="pass-body">
     <div class="stub">
       <img class="qr" src="/qr" alt="QR code for the VLESS connection link"/>
       <p class="stub-caption">Scan to connect</p>
-      <p class="stub-apps">V2Box &middot; Hiddify &middot; v2rayNG &middot; Shadowrocket</p>
     </div>
 
     <div class="seam" aria-hidden="true"></div>
 
     <div class="manifest">
       <div class="manifest-head">
-        <span class="proto" th:text="${info.protocol.toUpperCase()} + ' &middot; REALITY &middot; ' + ${info.flow} + ' &middot; ' + ${info.network.toUpperCase()}">VLESS &middot; REALITY &middot; xtls-rprx-vision &middot; TCP</span>
-        <span class="ticket-no">No. <span th:text="${info.shortId}">a1b2c3d4e5f6a7b8</span></span>
+        <span class="proto">Connection Info</span>
       </div>
 
       <dl class="fields">
+        <div class="field">
+          <dt>Label</dt>
+          <dd>
+            <form class="rename-form" method="post" action="/rename">
+              <input class="rename-input" type="text" name="label" th:value="${info.label}" maxlength="120" required/>
+              <button class="copy" type="submit">Save</button>
+            </form>
+          </dd>
+        </div>
+        <div class="field" th:if="${!#strings.isEmpty(info.city)}">
+          <dt>City</dt>
+          <dd>
+            <span class="val" th:text="${info.city}">Amsterdam</span>
+          </dd>
+        </div>
+        <div class="field" th:if="${!#strings.isEmpty(info.city)}">
+          <dt>Country</dt>
+          <dd>
+            <span class="val" th:text="${info.country}">Netherlands</span>
+          </dd>
+        </div>
         <div class="field">
           <dt>Server</dt>
           <dd>

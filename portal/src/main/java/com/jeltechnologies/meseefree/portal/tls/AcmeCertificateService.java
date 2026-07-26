@@ -2,6 +2,7 @@ package com.jeltechnologies.meseefree.portal.tls;
 
 import com.jeltechnologies.meseefree.portal.config.AcmeProperties;
 import com.jeltechnologies.meseefree.portal.config.PortalProperties;
+import com.jeltechnologies.meseefree.portal.connection.DomainDnsCheckService;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Authorization;
@@ -56,12 +57,14 @@ public class AcmeCertificateService {
     private final PortalProperties portalProperties;
     private final AcmeProperties acmeProperties;
     private final AcmeChallengeStore challengeStore;
+    private final DomainDnsCheckService domainDnsCheckService;
 
     public AcmeCertificateService(PortalProperties portalProperties, AcmeProperties acmeProperties,
-                                   AcmeChallengeStore challengeStore) {
+                                   AcmeChallengeStore challengeStore, DomainDnsCheckService domainDnsCheckService) {
         this.portalProperties = portalProperties;
         this.acmeProperties = acmeProperties;
         this.challengeStore = challengeStore;
+        this.domainDnsCheckService = domainDnsCheckService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -81,6 +84,16 @@ public class AcmeCertificateService {
             return;
         }
         String domain = portalProperties.domain();
+
+        // Do the DNS check first — an order attempt against a domain that doesn't even resolve
+        // here just burns a Let's Encrypt rate-limit slot for a failure we already know is coming.
+        domainDnsCheckService.check();
+        if (domainDnsCheckService.dnsMismatch()) {
+            log.warn("Skipping Let's Encrypt for {} — DOMAIN doesn't currently resolve to this "
+                    + "server's public IP, keeping the self-signed certificate until DNS is corrected.",
+                    domain);
+            return;
+        }
 
         try {
             if (activeCertCoversAndIsFresh(domain)) {

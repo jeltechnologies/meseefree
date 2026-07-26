@@ -10,43 +10,79 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Resolved once at startup — the public IP and the derived VLESS link don't change
- * for the lifetime of the process, mirroring the old Node portal's one-shot resolution.
+ * The identity/address fields are resolved once at startup and never change for the life of the
+ * process, mirroring the old Node portal's one-shot resolution. The connection label is the one
+ * exception — it can be changed at runtime via {@link #rename(String)}, so it's held in a mutable
+ * {@link AtomicReference} rather than baked into a single immutable {@link ConnectionInfo}.
  */
 @Component
 public class ConnectionInfoProvider {
 
     private static final Logger log = LoggerFactory.getLogger(ConnectionInfoProvider.class);
 
-    private final ConnectionInfo connectionInfo;
+    private final XrayClientLabelStore labelStore;
+    private final Identity identity;
+    private final String publicIp;
+    private final String vlessHost;
+    private final int port;
+    private final GeoLocation geoLocation;
+    private final AtomicReference<ConnectionInfo> connectionInfo = new AtomicReference<>();
 
     public ConnectionInfoProvider(IdentityLoader identityLoader, PublicIpClient publicIpClient,
-                                   PortalProperties properties) throws IOException, InterruptedException {
-        Identity identity = identityLoader.load();
-        String publicIp = publicIpClient.fetchPublicIp();
-        String location = publicIpClient.fetchLocation(publicIp);
-        int port = Integer.parseInt(properties.xrayPort());
+                                   XrayClientLabelStore labelStore, PortalProperties properties)
+            throws IOException, InterruptedException {
+        this.labelStore = labelStore;
+        this.identity = identityLoader.load();
+        this.publicIp = publicIpClient.fetchPublicIp();
+        this.geoLocation = publicIpClient.fetchGeoLocation(publicIp);
+        this.port = Integer.parseInt(properties.xrayPort());
+        this.vlessHost = properties.domainConfigured() ? properties.domain() : publicIp;
 
-        String vlessLink = "vless://" + identity.uuid() + "@" + publicIp + ":" + port
-                + "?encryption=none&flow=xtls-rprx-vision&security=reality&sni=" + identity.sniDomain()
-                + "&fp=chrome&pbk=" + identity.publicKey() + "&sid=" + identity.shortId()
-                + "&type=tcp#" + encodeURIComponent(location);
+        String label = labelStore.readLabel().orElse("Me See Free - " + geoLocation.display());
+        connectionInfo.set(buildConnectionInfo(label));
 
-        this.connectionInfo = new ConnectionInfo(
-                "vless", identity.uuid(), publicIp, port, "xtls-rprx-vision", "reality",
-                identity.sniDomain(), identity.publicKey(), identity.shortId(), "chrome", "tcp",
-                location, vlessLink);
-
-        String portalHost = properties.domainConfigured() ? properties.domain() : publicIp;
         log.info("Public IP: {}", publicIp);
-        log.info("VLESS link: {}", vlessLink);
-        log.info("Portal: https://{}:{}", portalHost, properties.portalPort());
+        log.info("VLESS address: {}", vlessHost);
+        log.info("VLESS link: {}", connectionInfo.get().vlessLink());
+        log.info("Portal: https://{}:{}", vlessHost, properties.portalPort());
     }
 
     public ConnectionInfo connectionInfo() {
-        return connectionInfo;
+        return connectionInfo.get();
+    }
+
+    public String publicIp() {
+        return publicIp;
+    }
+
+    /**
+     * Renames the connection label, taking effect immediately in memory and persisted into the
+     * xray client's "email" field in config.json (see {@link XrayClientLabelStore}) so it
+     * survives an xray restart too.
+     */
+    public synchronized void rename(String newLabel) {
+        String trimmed = newLabel == null ? "" : newLabel.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Label must not be blank");
+        }
+        connectionInfo.set(buildConnectionInfo(trimmed));
+        labelStore.writeLabel(trimmed);
+        log.info("Connection label renamed to: {}", trimmed);
+    }
+
+    private ConnectionInfo buildConnectionInfo(String label) {
+        String vlessLink = "vless://" + identity.uuid() + "@" + vlessHost + ":" + port
+                + "?encryption=none&flow=xtls-rprx-vision&security=reality&sni=" + identity.sniDomain()
+                + "&fp=chrome&pbk=" + identity.publicKey() + "&sid=" + identity.shortId()
+                + "&type=tcp#" + encodeURIComponent(label);
+
+        return new ConnectionInfo(
+                "vless", identity.uuid(), vlessHost, port, "xtls-rprx-vision", "reality",
+                identity.sniDomain(), identity.publicKey(), identity.shortId(), "chrome", "tcp",
+                geoLocation.city(), geoLocation.country(), label, vlessLink);
     }
 
     /**
