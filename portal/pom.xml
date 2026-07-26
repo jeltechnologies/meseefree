@@ -11,11 +11,11 @@
     <relativePath/>
   </parent>
 
-  <groupId>com.jeltechnologies</groupId>
+  <groupId>com.jeltechnologies.meseefree</groupId>
   <artifactId>portal</artifactId>
   <version>1.0.0</version>
   <name>portal</name>
-  <description>Status portal for the Xray VLESS+REALITY stack</description>
+  <description>Status portal for the meseefree VLESS+REALITY stack</description>
 
   <properties>
     <java.version>21</java.version>

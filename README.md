@@ -47,11 +47,13 @@ The stack generates its own identity, keys, and config automatically on first st
    they're blank by default, and the portal refuses to show your connection details until both are set.
 
 6. **(Optional) Point a domain at it for a trusted HTTPS certificate.** The portal is HTTPS-only and
-   works out of the box with a self-signed certificate — your browser will show a one-time warning
-   to click past. If you'd rather not see that, point a domain's DNS A/AAAA record at your VPS's IP
-   and set `DOMAIN` in `.env`; the stack then automatically obtains and renews a real certificate from
-   Let's Encrypt (this needs port 80 reachable from the internet, which the stack already publishes
-   for you).
+   works out of the box with a self-signed certificate. Browsers can't issue a trusted certificate for
+   a bare IP address, so if you open the portal via `https://<VPS_IP>:16810` you'll always get a
+   warning about the self-signed certificate — this is completely normal and not a sign anything is
+   wrong, just click past it. If you'd rather not see that warning at all, point a domain's DNS A/AAAA
+   record at your VPS's IP and set `DOMAIN` in `.env`; the stack then automatically obtains and renews
+   a real certificate from Let's Encrypt (this needs port 80 reachable from the internet, which the
+   stack already publishes for you).
 
 7. **Run it:**
    ```
@@ -65,7 +67,8 @@ The stack generates its own identity, keys, and config automatically on first st
    https://<VPS_IP>:16810
    ```
    (or `https://<DOMAIN>:16810` if you set one in step 6). Without a configured `DOMAIN`, your browser
-   will warn about the self-signed certificate — that's expected, click through it. Log in with the
+   will warn about the self-signed certificate — that's expected and safe to click through, it's just
+   how browsers react to any IP-address URL, not a sign of a problem with your setup. Log in with the
    `PORTAL_USER_NAME`/`PORTAL_PASSWORD` you set in step 5.
 
 ## How to connect

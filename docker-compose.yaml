@@ -28,7 +28,7 @@ services:
   # ── 1. Xray core (VLESS+REALITY) ───────────────────────────────────────────
   xray:
     image: teddysun/xray:latest
-    container_name: xray
+    container_name: meseefree-xray
     restart: unless-stopped
     depends_on:
       init:
