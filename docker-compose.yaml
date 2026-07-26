@@ -12,8 +12,8 @@ services:
   init:
     build:
       context: ./init
-    image: ghcr.io/jeltechnologies/net-sovereignty-in-a-box-init:latest
-    container_name: net-sovereignty-in-a-box-init
+    image: ghcr.io/jeltechnologies/meseefree-init:latest
+    container_name: meseefree-init
     volumes:
       - ./data:/etc/xray
     environment:
@@ -54,8 +54,8 @@ services:
     build:
       context: ./portal
       dockerfile: Dockerfile
-    image: ghcr.io/jeltechnologies/net-sovereignty-in-a-box-portal:latest
-    container_name: net-sovereignty-in-a-box-portal
+    image: ghcr.io/jeltechnologies/meseefree-portal:latest
+    container_name: meseefree-portal
     restart: unless-stopped
     networks:
       - xray-net

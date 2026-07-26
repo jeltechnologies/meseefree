@@ -37,8 +37,8 @@ The stack generates its own identity, keys, and config automatically on first st
 
 4. **Download `docker-compose.yaml` and `.env`** into a folder on your VPS:
    ```
-   curl -O https://raw.githubusercontent.com/jeltechnologies/net-sovereignty-in-a-box/main/docker-compose.yaml
-   curl -o .env https://raw.githubusercontent.com/jeltechnologies/net-sovereignty-in-a-box/main/.env.example
+   curl -O https://raw.githubusercontent.com/jeltechnologies/meseefree/main/docker-compose.yaml
+   curl -o .env https://raw.githubusercontent.com/jeltechnologies/meseefree/main/.env.example
    ```
    `.env` is the file you'll actually edit in the next step — it's gitignored so your real
    credentials never end up in any repo.
