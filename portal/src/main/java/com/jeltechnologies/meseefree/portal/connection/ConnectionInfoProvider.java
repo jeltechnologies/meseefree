@@ -1,8 +1,8 @@
-package com.jeltechnologies.portal.connection;
+package com.jeltechnologies.meseefree.portal.connection;
 
-import com.jeltechnologies.portal.config.PortalProperties;
-import com.jeltechnologies.portal.identity.Identity;
-import com.jeltechnologies.portal.identity.IdentityLoader;
+import com.jeltechnologies.meseefree.portal.config.PortalProperties;
+import com.jeltechnologies.meseefree.portal.identity.Identity;
+import com.jeltechnologies.meseefree.portal.identity.IdentityLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

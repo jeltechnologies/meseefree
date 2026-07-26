@@ -1,4 +1,4 @@
-package com.jeltechnologies.portal.connection;
+package com.jeltechnologies.meseefree.portal.connection;
 
 public record ConnectionInfo(
         String protocol,

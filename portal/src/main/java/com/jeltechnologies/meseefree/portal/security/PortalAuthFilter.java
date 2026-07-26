@@ -1,8 +1,8 @@
-package com.jeltechnologies.portal.security;
+package com.jeltechnologies.meseefree.portal.security;
 
-import com.jeltechnologies.portal.config.AcmeProperties;
-import com.jeltechnologies.portal.config.PortalProperties;
-import com.jeltechnologies.portal.tls.AcmeChallengeController;
+import com.jeltechnologies.meseefree.portal.config.AcmeProperties;
+import com.jeltechnologies.meseefree.portal.config.PortalProperties;
+import com.jeltechnologies.meseefree.portal.tls.AcmeChallengeController;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

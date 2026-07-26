@@ -1,4 +1,4 @@
-package com.jeltechnologies.portal.config;
+package com.jeltechnologies.meseefree.portal.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

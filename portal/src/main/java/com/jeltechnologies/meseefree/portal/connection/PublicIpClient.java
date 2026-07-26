@@ -1,4 +1,4 @@
-package com.jeltechnologies.portal.connection;
+package com.jeltechnologies.meseefree.portal.connection;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;

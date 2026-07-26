@@ -1,6 +1,6 @@
-package com.jeltechnologies.portal.security;
+package com.jeltechnologies.meseefree.portal.security;
 
-import com.jeltechnologies.portal.config.PortalProperties;
+import com.jeltechnologies.meseefree.portal.config.PortalProperties;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;

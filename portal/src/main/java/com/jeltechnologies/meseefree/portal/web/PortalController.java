@@ -1,7 +1,7 @@
-package com.jeltechnologies.portal.web;
+package com.jeltechnologies.meseefree.portal.web;
 
-import com.jeltechnologies.portal.connection.ConnectionInfo;
-import com.jeltechnologies.portal.connection.ConnectionInfoProvider;
+import com.jeltechnologies.meseefree.portal.connection.ConnectionInfo;
+import com.jeltechnologies.meseefree.portal.connection.ConnectionInfoProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.jeltechnologies.portal.web;
+package com.jeltechnologies.meseefree.portal.web;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;

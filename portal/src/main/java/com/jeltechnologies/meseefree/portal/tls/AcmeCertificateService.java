@@ -1,7 +1,7 @@
-package com.jeltechnologies.portal.tls;
+package com.jeltechnologies.meseefree.portal.tls;
 
-import com.jeltechnologies.portal.config.AcmeProperties;
-import com.jeltechnologies.portal.config.PortalProperties;
+import com.jeltechnologies.meseefree.portal.config.AcmeProperties;
+import com.jeltechnologies.meseefree.portal.config.PortalProperties;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Authorization;

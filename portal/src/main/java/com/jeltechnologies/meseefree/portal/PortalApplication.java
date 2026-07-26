@@ -1,7 +1,7 @@
-package com.jeltechnologies.portal;
+package com.jeltechnologies.meseefree.portal;
 
-import com.jeltechnologies.portal.config.AcmeProperties;
-import com.jeltechnologies.portal.config.PortalProperties;
+import com.jeltechnologies.meseefree.portal.config.AcmeProperties;
+import com.jeltechnologies.meseefree.portal.config.PortalProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;

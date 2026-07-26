@@ -1,4 +1,4 @@
-package com.jeltechnologies.portal.identity;
+package com.jeltechnologies.meseefree.portal.identity;
 
 import org.springframework.stereotype.Component;
 

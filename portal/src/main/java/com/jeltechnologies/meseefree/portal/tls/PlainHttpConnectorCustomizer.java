@@ -1,6 +1,6 @@
-package com.jeltechnologies.portal.tls;
+package com.jeltechnologies.meseefree.portal.tls;
 
-import com.jeltechnologies.portal.config.AcmeProperties;
+import com.jeltechnologies.meseefree.portal.config.AcmeProperties;
 import org.apache.catalina.connector.Connector;
 import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;

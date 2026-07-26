@@ -1,7 +1,7 @@
-package com.jeltechnologies.portal.web;
+package com.jeltechnologies.meseefree.portal.web;
 
-import com.jeltechnologies.portal.security.PortalAuthFilter;
-import com.jeltechnologies.portal.security.PortalCredentials;
+import com.jeltechnologies.meseefree.portal.security.PortalAuthFilter;
+import com.jeltechnologies.meseefree.portal.security.PortalCredentials;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
