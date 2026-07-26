@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#F7F5EF"/>
+<title>Me See Free - About</title>
+<style>
+  :root{
+    --page:      #EFEAD9;
+    --paper:     #F7F5EF;
+    --ink:       #16213E;
+    --label:     #8A8471;
+    --accent:    #B54E1D;
+    --line:      #D9D2BC;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--page);
+    background-image:radial-gradient(ellipse at top, rgba(255,255,255,.5), transparent 60%);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:40px 16px 24px;
+  }
+
+  a{color:var(--accent)}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .sheet{
+    width:100%;
+    max-width:640px;
+    background:var(--paper);
+    border-radius:18px;
+    box-shadow:0 1px 2px rgba(22,33,62,.06), 0 18px 40px -20px rgba(22,33,62,.28);
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(10px) rotate(-.3deg);
+    animation:print-in .5s cubic-bezier(.2,.7,.3,1) .05s forwards;
+  }
+  @keyframes print-in{to{opacity:1;transform:translateY(0) rotate(0)}}
+  @media (prefers-reduced-motion: reduce){
+    .sheet{animation:none;opacity:1;transform:none}
+  }
+
+  .hero{
+    padding:28px 26px 22px;
+    border-bottom:1px solid var(--line);
+  }
+  .logo-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 18px;
+  }
+  .logo-row svg{flex:none}
+  .wordmark{
+    font-family:var(--mono);
+    font-size:.72rem;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:1.3rem;
+    line-height:1.35;
+    letter-spacing:-.01em;
+  }
+  .lede{
+    margin:0;
+    font-size:.92rem;
+    line-height:1.5;
+    color:var(--label);
+  }
+
+  .values{
+    margin:0;
+    padding:20px 26px 6px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 20px;
+  }
+  .value dt{
+    font-family:var(--mono);
+    font-size:.68rem;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 4px;
+  }
+  .value dd{
+    margin:0;
+    font-size:.84rem;
+    line-height:1.45;
+    color:var(--ink);
+  }
+  .value-wide{grid-column:1 / -1}
+
+  .how{
+    margin:8px 26px 0;
+    padding:20px 0 22px;
+    border-top:1px solid var(--line);
+  }
+  .how h2{
+    margin:0 0 10px;
+    font-size:.68rem;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--label);
+  }
+  .how p{
+    margin:0;
+    font-size:.84rem;
+    line-height:1.55;
+    color:var(--ink);
+  }
+
+  .apps{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:10px;
+  }
+  .app{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .app-name{
+    font-family:var(--mono);
+    font-size:.72rem;
+    font-weight:600;
+    letter-spacing:.04em;
+    color:var(--ink);
+    min-width:62px;
+  }
+  .store-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--ink);
+    text-decoration:none;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:6px 10px;
+    transition:border-color .15s, color .15s;
+  }
+  .store-link:hover{border-color:var(--accent);color:var(--accent)}
+  .store-link svg{width:14px;height:14px;fill:currentColor;flex:none}
+
+  footer{
+    margin-top:22px;
+    font-size:.7rem;
+    color:var(--label);
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  footer a{text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+  footer a:hover{text-decoration:underline}
+  footer a svg{width:14px;height:14px;fill:currentColor}
+
+  @media (max-width:520px){
+    .values{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<main class="sheet">
+  <div class="hero">
+    <div class="logo-row">
+      <svg width="30" height="30" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="17" cy="17" r="16" fill="#F7F5EF" stroke="#B54E1D" stroke-width="1.5"/>
+        <path d="M6 17C9 11 13 8 17 8C21 8 25 11 28 17C25 23 21 26 17 26C13 26 9 23 6 17Z" stroke="#16213E" stroke-width="1.6" fill="none"/>
+        <circle cx="17" cy="17" r="4.2" fill="#B54E1D"/>
+      </svg>
+      <span class="wordmark">Me See Free</span>
+    </div>
+    <h1>Family-friendly uncensored internet</h1>
+    <p class="lede">Governments and ISPs block more of the internet every year. This gets you back in —
+      without the shady corners of Tor.</p>
+  </div>
+
+  <dl class="values">
+    <div class="value">
+      <dt>Skip the age verification checks</dt>
+      <dd>France and the UK now require age verification just to open many websites. Me See Free
+        bypasses this, by moving your internet access from your home to an uncensored location.</dd>
+    </div>
+    <div class="value">
+      <dt>VPNs are next on the list</dt>
+      <dd>As people will start VPNs to bypass age verification, regulators will push to Internet
+        Service Providers to block VPNs. Me See Free is made to bypass these blocks.</dd>
+    </div>
+    <div class="value">
+      <dt>Family Friendly</dt>
+      <dd>When VPNs get blocked, people move to Tor — already happening in the UK. Tor also carries a
+        lot of illegal activity alongside it. Me See Free also is not using Tor, on a server only you
+        control.</dd>
+    </div>
+    <div class="value">
+      <dt>Battle-tested</dt>
+      <dd>China's Great Firewall is 20 years ahead of Europe on this, but still can't stop Me See Free
+        as of 2026 — you're ahead of anything regulators in Europe have even tried yet.</dd>
+    </div>
+    <div class="value value-wide">
+      <dt>Completely under your control</dt>
+      <dd>Your own server, your own IP, your own disguise domain — no third-party VPN provider in the
+        middle to trust, subpoena, or shut down.</dd>
+    </div>
+  </dl>
+
+  <div class="how">
+    <h2>Does this provide total anonymous internet?</h2>
+    <p>No, but it doesn't need to. Your regulator and your Internet Service Provider only ever see an
+      ordinary encrypted visit to a trusted website — never what you're actually doing. The company
+      hosting your server can still see where your traffic goes from there. So this isn't full
+      anonymity — it's enough to get around censorship and blocking, not to disappear entirely. Pick a
+      hosting provider you trust.</p>
+    <p style="margin-top:10px">This project is free and open source — self-hosted, no subscription, no
+      accounts, and the code is yours to inspect.</p>
+  </div>
+
+  <div class="how">
+    <h2>How it works</h2>
+    <p>Your device connects to your own server on port 443 — the same port every HTTPS website uses.
+      REALITY makes that connection indistinguishable from an ordinary visit to a real, trusted site: no
+      fake certificate, no unusual pattern, nothing to fingerprint. Only someone holding your private key
+      can actually reach the proxy hiding behind that disguise.</p>
+  </div>
+
+  <div class="how">
+    <h2>What you need</h2>
+    <p>A VPS — a small server rented from any cloud provider, a few dollars a month — to run this
+      stack on. That's it.</p>
+    <p style="margin-top:10px">A domain name is optional: without one, clients connect to your
+      server's IP address directly; pointing a domain at it just gives you a stable address and
+      lets the portal fetch a trusted Let's Encrypt certificate instead of a self-signed one.</p>
+  </div>
+
+  <div class="how">
+    <h2>Get the app</h2>
+    <p>Any Xray/V2Ray-compatible client that supports VLESS + REALITY will work. Two that do:</p>
+    <div class="apps">
+      <div class="app">
+        <span class="app-name">v2Box</span>
+        <a class="store-link" href="https://apps.apple.com/us/app/v2box-v2ray-client/id6446814690">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+          App Store
+        </a>
+        <a class="store-link" href="https://play.google.com/store/apps/details?id=dev.hexasoftware.v2box">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z"/></svg>
+          Google Play
+        </a>
+      </div>
+      <div class="app">
+        <span class="app-name">OneXray</span>
+        <a class="store-link" href="https://apps.apple.com/us/app/onexray/id6745748773">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+          App Store
+        </a>
+        <a class="store-link" href="https://play.google.com/store/apps/details?id=net.yuandev.onexray">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z"/></svg>
+          Google Play
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="how">
+    <h2>Built on</h2>
+    <p>Me See Free doesn't implement a proxy protocol of its own — it's a setup and management layer
+      around two existing open source projects: <a href="https://github.com/v2fly/v2ray-core">V2Ray</a>,
+      started in 2015 by a developer known as Victoria Raymond, and
+      <a href="https://github.com/XTLS/Xray-core">Xray-core</a>, the actively maintained fork this stack
+      actually runs, created and maintained by RPRX — also the author of VLESS, XTLS, and REALITY. What
+      Me See Free adds is automatic identity generation, HTTPS, and this status portal — making that
+      software easy to set up and manage instead of hand-configuring it yourself.</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/">&larr; Back to connection info</a><span aria-hidden="true">&middot;</span>
+  <a href="https://github.com/jeltechnologies/meseefree">
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></svg>
+    GitHub
+  </a>
+</footer>
+
+</body>
+</html>

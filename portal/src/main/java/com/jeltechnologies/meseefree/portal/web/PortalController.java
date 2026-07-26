@@ -34,6 +34,11 @@ public class PortalController {
         return "index";
     }
 
+    @GetMapping("/about")
+    public String info() {
+        return "info";
+    }
+
     @GetMapping(value = {"/json", "/api"}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ConnectionInfo json() {

@@ -89,6 +89,15 @@ ID, and server address in the profile are all correct. If you hit this, switch t
 global default) to the **Xray core** instead — in v2rayN, check the core selection under Settings for
 this profile. This resolved the issue in testing; the server-side config needed no changes.
 
+## Credits
+
+Me See Free doesn't implement a proxy protocol of its own — it's a setup and management layer around two existing open source projects:
+
+- **[V2Ray](https://github.com/v2fly/v2ray-core)** (Project V), started in 2015 by a developer known as Victoria Raymond.
+- **[Xray-core](https://github.com/XTLS/Xray-core)** (Project X), the actively maintained fork this stack actually runs, created and maintained by **RPRX** — also the author of VLESS, XTLS, and REALITY.
+
+What Me See Free adds on top: automatic identity/keypair generation, HTTPS with Let's Encrypt, a status portal with QR code, and a 15-minute deployment — making Xray-core easy to set up and manage instead of hand-configuring it yourself.
+
 ## Disclaimer
 
 This reflects the current state of the art as of July 2026. Censorship is a cat-and-mouse game — this will eventually stop working, and something else will replace it.
