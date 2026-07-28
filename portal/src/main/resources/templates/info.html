@@ -126,6 +126,20 @@
     color:var(--ink);
   }
 
+  .screenshot{
+    display:block;
+    width:100%;
+    border-radius:10px;
+    border:1px solid var(--line);
+    margin-top:10px;
+  }
+  .screenshot-caption{
+    margin:6px 0 0;
+    font-size:.72rem;
+    font-style:italic;
+    color:var(--label);
+  }
+
   .apps{
     display:flex;
     flex-direction:column;
@@ -194,6 +208,19 @@
     <h1>Family-friendly uncensored internet</h1>
     <p class="lede">Governments and ISPs block more of the internet every year. This gets you back in —
       without the shady corners of Tor.</p>
+    <p class="lede">Connect by scanning the QR code from your phone or desktop.</p>
+    <img class="screenshot" src="/img/screenshot-connection-info.png"
+      alt="Portal connection info page with example connection details and QR code"/>
+    <p class="screenshot-caption">Sample screenshot with fake data — this connection will not work.
+      Your own portal will show real, working connection details.</p>
+  </div>
+
+  <div class="how">
+    <h2>What it does</h2>
+    <p>Me See Free runs a private VLESS+REALITY proxy on a server you control, disguising your
+      connection as an ordinary visit to a trusted website so it can't be detected or blocked. This
+      portal generates a unique identity and keypair on first start and gives you a ready-to-scan QR
+      code and connection link — no manual networking configuration required.</p>
   </div>
 
   <dl class="values">

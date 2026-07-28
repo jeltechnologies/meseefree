@@ -2,6 +2,15 @@
 
 A self-hosted VLESS+REALITY proxy, deployed in minutes with zero networking expertise.
 
+Connect by scanning the QR code from your phone or desktop.
+
+![Portal connection info page](docs/screenshot-connection-info.png)
+*Sample screenshot with fake data — this connection will not work. Your own portal will show real, working connection details.*
+
+## What it does
+
+Me See Free runs a private VLESS+REALITY proxy on a server you control, disguising your connection as an ordinary visit to a trusted website so it can't be detected or blocked. A web portal generates a unique identity and keypair on first start and gives you a ready-to-scan QR code and connection link — no manual networking configuration required.
+
 ## Why
 
 China's Great Firewall and the people routing around it have been locked in a cat-and-mouse game for 25+ years: every time regulators learn to detect a proxy technique, engineers ship the next one. **REALITY** is the current state of the art in that arms race — instead of hiding traffic, it disguises your connection as an ordinary visit to a trusted site (e.g. the regulator's own servers), indistinguishable from millions of other people visiting that same site. There's nothing fake to notice and no unusual pattern to flag — which is why it holds up where earlier VPN protocols get detected and blocked. You never actually connect to or use the camouflage domain — it's disguise only, not a real destination for your traffic.
