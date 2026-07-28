@@ -4,7 +4,7 @@ A self-hosted VLESS+REALITY proxy, deployed in minutes with zero networking expe
 
 Connect by scanning the QR code from your phone or desktop.
 
-![Portal connection info page](docs/screenshot-connection-info.png)
+![Portal connection info page](docs/screenshot-connection-info.jpg)
 *Sample screenshot with fake data — this connection will not work. Your own portal will show real, working connection details.*
 
 ## What it does
