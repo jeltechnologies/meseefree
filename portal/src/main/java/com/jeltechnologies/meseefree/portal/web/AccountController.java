@@ -3,11 +3,15 @@ package com.jeltechnologies.meseefree.portal.web;
 import com.jeltechnologies.meseefree.portal.security.PortalAuthFilter;
 import com.jeltechnologies.meseefree.portal.security.PortalCredentials;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.UncheckedIOException;
 
 /**
  * Change the portal's username and password. Forced right after the first login with the
@@ -16,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 public class AccountController {
+
+    private static final Logger log = LoggerFactory.getLogger(AccountController.class);
 
     static final int MIN_PASSWORD_LENGTH = 10;
     static final int MAX_USERNAME_LENGTH = 64;
@@ -46,7 +52,16 @@ public class AccountController {
             model.addAttribute("error", error);
             return "account";
         }
-        credentials.change(user, newPassword);
+        try {
+            credentials.change(user, newPassword);
+        } catch (UncheckedIOException e) {
+            log.error("Could not save new portal credentials", e);
+            populate(model);
+            model.addAttribute("newUsername", user);
+            model.addAttribute("error", "Could not save your new login: " + e.getCause().getMessage()
+                    + ". Check that data/tls is mounted writable (see docker-compose.yaml).");
+            return "account";
+        }
         // The session key rotated with the change, so the old cookie is dead — issue a fresh one.
         LoginController.setSessionCookie(res, credentials.issueSessionToken(user));
         return "redirect:/";

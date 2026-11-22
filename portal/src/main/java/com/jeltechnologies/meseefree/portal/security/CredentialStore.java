@@ -33,8 +33,11 @@ public class CredentialStore {
 
     private static final Logger log = LoggerFactory.getLogger(CredentialStore.class);
 
-    private static final Path DIR = Path.of("/etc/xray/portal");
-    private static final Path FILE = DIR.resolve("credentials.properties");
+    // Lives in tls/ because that's the portal's one writable directory on every install (it's been
+    // mounted read-write since the ACME feature) — a dedicated new mount would break anyone who
+    // updates the image without also re-downloading docker-compose.yaml.
+    private static final Path DIR = Path.of("/etc/xray/tls");
+    private static final Path FILE = DIR.resolve("portal-credentials.properties");
 
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final int ITERATIONS = 600_000;
@@ -95,7 +98,7 @@ public class CredentialStore {
 
         try {
             Files.createDirectories(DIR);
-            Path tmp = Files.createTempFile(DIR, "credentials", ".tmp");
+            Path tmp = Files.createTempFile(DIR, "portal-credentials", ".tmp");
             try {
                 setOwnerOnly(tmp);
                 try (Writer w = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8)) {

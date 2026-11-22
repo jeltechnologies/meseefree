@@ -63,7 +63,7 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   by default in `docker-compose.yaml`) are honored only until the operator replaces them on first
   sign-in. Until either they're set or stored credentials exist
   (`PortalCredentials#authConfigured`), every route returns a `500` instead of connection details.
-  - **Bootstrap mode** (no `data/portal/credentials.properties` yet): the `.env` pair is accepted
+  - **Bootstrap mode** (no `data/tls/portal-credentials.properties` yet): the `.env` pair is accepted
     (constant-time compare), but only to reach `GET/POST /account` (`web/AccountController`,
     `templates/account.html`) — `PortalAuthFilter` redirects a bootstrap browser session from every
     other route to `/account`, and Basic Auth with the bootstrap pair gets a `403`. The new password
@@ -71,9 +71,11 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
     Auth splits on it).
   - **Stored mode**: `security/CredentialStore` persists the new username plus a salted
     PBKDF2-HMAC-SHA256 hash (600k iterations, JDK-only — no new dependency) and a random
-    session-signing key to `data/portal/credentials.properties` (`0600`, mounted read-write at
-    `/etc/xray/portal`, written temp-file-then-`ATOMIC_MOVE` since nothing outside the container reads
-    it). The `.env` values are then ignored entirely. `/account` stays reachable (footer "Change
+    session-signing key to `data/tls/portal-credentials.properties` (`0600`, written
+    temp-file-then-`ATOMIC_MOVE` since nothing outside the container reads it). It deliberately
+    lives in the existing writable `tls/` mount rather than a dedicated one: v1.2.0 used a new
+    `./data/portal` mount, and installs that updated the image without re-downloading
+    `docker-compose.yaml` failed with "Read-only file system" on first credential change. The `.env` values are then ignored entirely. `/account` stays reachable (footer "Change
     login" link) but then requires the current password. Every change regenerates the session key,
     invalidating all existing login cookies. Forgotten password recovery = delete that file and
     `docker compose restart portal`.
@@ -119,13 +121,13 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   watcher hot-swaps a changed cert/key pair into Tomcat with **no restart**, which is what makes
   unattended renewal possible.
   - **Volume mount**: `portal`'s main `./data:/etc/xray:ro` mount is read-only, but
-    `docker-compose.yaml` adds three more specific mounts that override the parent for just those
+    `docker-compose.yaml` adds two more specific mounts that override the parent for just those
     paths — Docker resolves the more specific bind mount for any path under it. `./data/tls:/etc/xray/tls`
     (no `:ro`): the portal genuinely needs to write here (to persist `acme-account.key`, and to
-    install/renew Let's Encrypt certs). `./data/config.json:/etc/xray/config.json` (no `:ro`): the
+    install/renew Let's Encrypt certs, and to store the operator's hashed portal login — see
+    "Portal login" above). `./data/config.json:/etc/xray/config.json` (no `:ro`): the
     portal writes the connection label into the client's `email` field here (see "Connection
-    label" below). `./data/portal:/etc/xray/portal` (no `:ro`): the operator's hashed login (see
-    "Portal login" above) — `identity.env` stays read-only, the portal never touches that one. If you ever
+    label" below). — `identity.env` stays read-only, the portal never touches that one. If you ever
     see ACME renewal (or a label rename) failing with a read-only-filesystem error, these mounts
     are the first thing to check.
   - **Self-signed fallback**: `generate-identity.sh` generates `active.crt`/`active.key` with

@@ -68,15 +68,13 @@ services:
       - ./data:/etc/xray:ro
       # More specific mounts override the :ro above for just these paths — identity.env stays
       # read-only, the portal never writes it.
-      # tls/: self-signed cert reuse, and to install/renew Let's Encrypt certificates.
+      # tls/: self-signed cert reuse, to install/renew Let's Encrypt certificates, and your own
+      # portal login (portal-credentials.properties, password hashed — never in plain text).
       - ./data/tls:/etc/xray/tls
       # config.json: lets the portal persist a renamed connection label into the xray client's
       # "email" field (see ConnectionInfoProvider/XrayClientLabelStore) so it survives an xray
       # restart. depends_on below guarantees init has already created this file before portal starts.
       - ./data/config.json:/etc/xray/config.json
-      # portal/: your own portal login, saved (password hashed, never in plain text) after you
-      # replace the bootstrap PORTAL_USER_NAME/PORTAL_PASSWORD on first sign-in.
-      - ./data/portal:/etc/xray/portal
     environment:
       XRAY_PORT: "${XRAY_PORT:-443}"
       # External port the portal is published on (the "16810" side of the "16810:8080"
@@ -90,7 +88,7 @@ services:
       # certificate that's generated automatically on first start; HTTPS works either way.
       DOMAIN: "${DOMAIN:-}"
       # Bootstrap login for the portal, used only for the very first sign-in — the portal
-      # then makes you choose your own username/password (stored hashed in data/portal/)
+      # then makes you choose your own username/password (stored hashed in data/tls/)
       # and ignores these from then on. Left blank on purpose: the portal exposes your UUID,
       # REALITY keys, and VLESS link, so you must set both in .env first. See .env.example.
       PORTAL_USER_NAME: "${PORTAL_USER_NAME:-}"

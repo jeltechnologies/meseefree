@@ -96,5 +96,5 @@ Setup can be done within 15 minutes.
    how browsers react to any IP-address URL, not a sign of a problem with your setup. Log in with the
    `PORTAL_USER_NAME`/`PORTAL_PASSWORD` you set in step 5, then choose your own username and password
    when prompted. You can change them again later via **Change login** at the bottom of the page. If
-   you ever forget them, delete `data/portal/credentials.properties` and restart the portal
+   you ever forget them, delete `data/tls/portal-credentials.properties` and restart the portal
    (`docker compose restart portal`) to sign in with the `.env` credentials again.
