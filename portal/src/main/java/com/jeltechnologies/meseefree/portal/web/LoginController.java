@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.Duration;
-
 @Controller
 public class LoginController {
 
@@ -34,16 +32,19 @@ public class LoginController {
             model.addAttribute("error", true);
             return "login";
         }
+        setSessionCookie(res, credentials.issueSessionToken(username));
+        return credentials.mustChangeCredentials() ? "redirect:" + PortalAuthFilter.ACCOUNT_PATH : "redirect:/";
+    }
 
-        ResponseCookie cookie = ResponseCookie.from(PortalAuthFilter.AUTH_COOKIE_NAME,
-                        credentials.encodeBase64(username, password))
+    /** The login cookie carries a signed session token, never the password itself. */
+    static void setSessionCookie(HttpServletResponse res, String token) {
+        ResponseCookie cookie = ResponseCookie.from(PortalAuthFilter.AUTH_COOKIE_NAME, token)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
                 .path("/")
-                .maxAge(Duration.ofDays(30))
+                .maxAge(PortalCredentials.SESSION_LIFETIME)
                 .build();
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return "redirect:/";
     }
 }

@@ -66,8 +66,10 @@ Setup can be done within 15 minutes.
    `.env` is the file you'll actually edit in the next step — it's gitignored so your real
    credentials never end up in any repo.
 
-5. **Set portal credentials.** Open `.env` and fill in `PORTAL_USER_NAME` and `PORTAL_PASSWORD` —
-   they're blank by default, and the portal refuses to show your connection details until both are set.
+5. **Set initial portal credentials.** Open `.env` and fill in `PORTAL_USER_NAME` and `PORTAL_PASSWORD` —
+   the portal refuses to show your connection details until both are set. These are only used for your
+   very first sign-in: the portal then asks you to choose your own username and password, stores the
+   password as a salted hash (never in plain text), and ignores the `.env` values from then on.
 
 6. **(Optional) Point a domain at it for a trusted HTTPS certificate.** The portal is HTTPS-only and
    works out of the box with a self-signed certificate. Browsers can't issue a trusted certificate for
@@ -92,4 +94,7 @@ Setup can be done within 15 minutes.
    (or `https://<DOMAIN>:16810` if you set one in step 6). Without a configured `DOMAIN`, your browser
    will warn about the self-signed certificate — that's expected and safe to click through, it's just
    how browsers react to any IP-address URL, not a sign of a problem with your setup. Log in with the
-   `PORTAL_USER_NAME`/`PORTAL_PASSWORD` you set in step 5.
+   `PORTAL_USER_NAME`/`PORTAL_PASSWORD` you set in step 5, then choose your own username and password
+   when prompted. You can change them again later via **Change login** at the bottom of the page. If
+   you ever forget them, delete `data/portal/credentials.properties` and restart the portal
+   (`docker compose restart portal`) to sign in with the `.env` credentials again.

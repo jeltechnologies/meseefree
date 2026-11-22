@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#FFFFFF"/>
+<title>Me See Free</title>
+<style>
+  :root{
+    --page:   #FFFFFF;
+    --paper:  #FFFFFF;
+    --ink:    #1F2937;
+    --label:  #6B7280;
+    --accent: #1D4ED8;
+    --line:   #E5E7EB;
+    --error:  #B3261E;
+    --sans: Arial, Helvetica, "Liberation Sans", Arimo, sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--page);
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+  }
+
+  .card{
+    width:100%;
+    max-width:340px;
+    background:var(--paper);
+    border-radius:12px;
+    border:1px solid var(--line);
+    box-shadow:0 1px 3px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.12);
+    padding:28px 26px 26px;
+  }
+  h1{
+    margin:0 0 20px;
+    font-size:.95rem;
+    font-weight:600;
+    letter-spacing:.02em;
+  }
+  label{
+    display:block;
+    font-size:.68rem;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--label);
+    margin:0 0 6px;
+  }
+  input{
+    width:100%;
+    font-family:inherit;
+    font-size:.9rem;
+    color:var(--ink);
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 11px;
+    margin:0 0 16px;
+  }
+  input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  button{
+    width:100%;
+    font-family:inherit;
+    font-size:.85rem;
+    font-weight:600;
+    color:var(--paper);
+    background:var(--ink);
+    border:none;
+    border-radius:8px;
+    padding:10px;
+    cursor:pointer;
+  }
+  button:hover{background:#111827}
+  .note{
+    font-size:.8rem;
+    line-height:1.45;
+    color:var(--label);
+    margin:-8px 0 18px;
+  }
+  .cancel{
+    display:block;
+    text-align:center;
+    font-size:.8rem;
+    color:var(--label);
+    margin-top:14px;
+  }
+  .error{
+    font-size:.78rem;
+    color:var(--error);
+    margin:-6px 0 16px;
+  }
+</style>
+</head>
+<body>
+
+<main class="card">
+  <h1 th:text="${bootstrap} ? 'Set your own login' : 'Change login'">Set your own login</h1>
+  <p class="note" th:if="${bootstrap}">You signed in with the initial credentials from <code>.env</code>.
+    Choose your own username and password to continue — the initial ones stop working afterwards.</p>
+  <p class="error" th:if="${error}" th:text="${error}">Passwords do not match.</p>
+  <form method="post" action="/account">
+    <th:block th:unless="${bootstrap}">
+      <label for="currentPassword">Current password</label>
+      <input type="password" id="currentPassword" name="currentPassword" autocomplete="current-password" required autofocus/>
+    </th:block>
+    <label for="newUsername">New username</label>
+    <input type="text" id="newUsername" name="newUsername" autocomplete="username" maxlength="64" required
+           th:value="${newUsername} ?: ${currentUsername}" th:autofocus="${bootstrap}"/>
+    <label for="newPassword">New password</label>
+    <input type="password" id="newPassword" name="newPassword" autocomplete="new-password" required
+           th:attr="minlength=${minPasswordLength},placeholder='At least ' + ${minPasswordLength} + ' characters'"/>
+    <label for="confirmPassword">Confirm new password</label>
+    <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required
+           th:attr="minlength=${minPasswordLength}"/>
+    <button type="submit">Save</button>
+  </form>
+  <a class="cancel" href="/" th:unless="${bootstrap}">Cancel</a>
+</main>
+
+</body>
+</html>

@@ -59,25 +59,32 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   (e.g. `docker compose up -d portal`) to pick up the change. Keep `.env.example` in sync with any new
   variable added to `docker-compose.yaml`'s `environment:` blocks.
 
-- **The portal is protected by Basic Auth credentials, `PORTAL_USER_NAME`/`PORTAL_PASSWORD`, both left
-  blank by default (unset in `.env.example`)** — the portal exposes the UUID, REALITY keys, and VLESS
-  link, so operators are forced to pick real credentials by setting both in `.env` rather than running
-  with a guessable default like `admin`/`admin`. Until both are set, every route (including `/qr` and
-  `/json`) returns a `500` error page instead of serving connection details; `PortalAuthFilter` checks
-  this by testing whether both env vars are non-empty (`PortalProperties#authConfigured`). Once both
-  are set and the service is recreated, every route requires authentication, checked against
-  `PORTAL_USER_NAME`/`PORTAL_PASSWORD` with `MessageDigest.isEqual` (`PortalCredentials`) either way —
-  but the credentials can arrive two ways:
-  - **Browsers** get a custom login page (`GET /login`, `web/LoginController`, `templates/login.html`)
-    instead of the browser's native Basic Auth popup. `PortalAuthFilter` never sends a
-    `WWW-Authenticate` challenge — a request with no valid `Authorization` header and no valid auth
-    cookie is 302-redirected to `/login`. A successful `POST /login` sets an `HttpOnly`, `Secure`,
-    `SameSite=Strict` cookie (`PortalAuthFilter.AUTH_COOKIE_NAME`, 30-day expiry) whose value is the
-    exact same base64(`user:pass`) a real Basic Auth header would carry — same credential check either
-    way, just delivered without the ugly native prompt.
-  - **Scripts/`curl -u`** keep working unchanged: a request that already carries an `Authorization:
-    Basic ...` header is validated directly (200 or 401, no redirect), so nothing programmatic that
-    relied on real Basic Auth broke.
+- **Portal login: `.env` credentials are bootstrap-only.** `PORTAL_USER_NAME`/`PORTAL_PASSWORD` (blank
+  by default in `docker-compose.yaml`) are honored only until the operator replaces them on first
+  sign-in. Until either they're set or stored credentials exist
+  (`PortalCredentials#authConfigured`), every route returns a `500` instead of connection details.
+  - **Bootstrap mode** (no `data/portal/credentials.properties` yet): the `.env` pair is accepted
+    (constant-time compare), but only to reach `GET/POST /account` (`web/AccountController`,
+    `templates/account.html`) — `PortalAuthFilter` redirects a bootstrap browser session from every
+    other route to `/account`, and Basic Auth with the bootstrap pair gets a `403`. The new password
+    must be ≥10 chars and differ from the bootstrap one; the username must not contain `:` (Basic
+    Auth splits on it).
+  - **Stored mode**: `security/CredentialStore` persists the new username plus a salted
+    PBKDF2-HMAC-SHA256 hash (600k iterations, JDK-only — no new dependency) and a random
+    session-signing key to `data/portal/credentials.properties` (`0600`, mounted read-write at
+    `/etc/xray/portal`, written temp-file-then-`ATOMIC_MOVE` since nothing outside the container reads
+    it). The `.env` values are then ignored entirely. `/account` stays reachable (footer "Change
+    login" link) but then requires the current password. Every change regenerates the session key,
+    invalidating all existing login cookies. Forgotten password recovery = delete that file and
+    `docker compose restart portal`.
+  - **Browsers** get a custom login page (`GET/POST /login`, `web/LoginController`) — never a
+    `WWW-Authenticate` challenge; unauthenticated requests are 302'd to `/login`. A successful login
+    sets an `HttpOnly`, `Secure`, `SameSite=Strict` cookie (`PortalAuthFilter.AUTH_COOKIE_NAME`, 30
+    days) holding an HMAC-signed session token (`base64url(user).expiry.hmac`, see
+    `PortalCredentials#issueSessionToken`) — not the password. Bootstrap sessions are signed with an
+    in-memory key and die on portal restart.
+  - **Scripts/`curl -u`** keep working: an `Authorization: Basic ...` header is validated directly
+    (200 / 401, no redirect) against the same check — costs one PBKDF2 hash per request.
 
 - **Client identity — UUID, short ID, SNI/serverName, and the REALITY X25519 keypair — is fully
   auto-generated on first start**, nothing is hardcoded. All three services mount the top-level
@@ -112,12 +119,13 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   watcher hot-swaps a changed cert/key pair into Tomcat with **no restart**, which is what makes
   unattended renewal possible.
   - **Volume mount**: `portal`'s main `./data:/etc/xray:ro` mount is read-only, but
-    `docker-compose.yaml` adds two more specific mounts that override the parent for just those
+    `docker-compose.yaml` adds three more specific mounts that override the parent for just those
     paths — Docker resolves the more specific bind mount for any path under it. `./data/tls:/etc/xray/tls`
     (no `:ro`): the portal genuinely needs to write here (to persist `acme-account.key`, and to
     install/renew Let's Encrypt certs). `./data/config.json:/etc/xray/config.json` (no `:ro`): the
     portal writes the connection label into the client's `email` field here (see "Connection
-    label" below) — `identity.env` stays read-only, the portal never touches that one. If you ever
+    label" below). `./data/portal:/etc/xray/portal` (no `:ro`): the operator's hashed login (see
+    "Portal login" above) — `identity.env` stays read-only, the portal never touches that one. If you ever
     see ACME renewal (or a label rename) failing with a read-only-filesystem error, these mounts
     are the first thing to check.
   - **Self-signed fallback**: `generate-identity.sh` generates `active.crt`/`active.key` with
@@ -173,11 +181,11 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   `@ConfigurationProperties` records), `identity/` (parses `identity.env`), `connection/` (public-IP
   lookup + the one-shot `ConnectionInfoProvider` bean built at startup), `security/` (`PortalAuthFilter`,
   a plain `jakarta.servlet.Filter` — no Spring Security dependency, kept in the spirit of the
-  project's minimal-deps philosophy — plus `PortalCredentials`, the shared constant-time credential
-  check both the filter and the login form use), `tls/` (self-signed-or-Let's-Encrypt HTTPS, see
+  project's minimal-deps philosophy — plus `PortalCredentials`, the shared credential/session-token check every auth path uses, and
+  `CredentialStore`, the hashed on-disk login), `tls/` (self-signed-or-Let's-Encrypt HTTPS, see
   "TLS / HTTPS" below), `web/` (the `PortalController` routes, `LoginController` for `/login`, plus
-  `QrCodeService`, which wraps ZXing). The UI is Thymeleaf templates
-  (`src/main/resources/templates/index.html`, `login.html`) with inline `<style>`/`<script>` — no
+  `AccountController` for `/account`, `QrCodeService`, which wraps ZXing). The UI is Thymeleaf templates
+  (`src/main/resources/templates/index.html`, `login.html`, `account.html`) with inline `<style>`/`<script>` — no
   separate CSS/JS build step, matching this project's preference for keeping the portal to as few
   moving parts as
   practical. Keep changes in this style rather than pulling in more framework surface (e.g. Spring
@@ -218,7 +226,8 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   the label back to the geoip default, since that regenerates `config.json` from scratch.
 - Portal routes (all HTTPS, all Basic-Auth-gated): `/` (HTML status page), `/json` and `/api`
   (connection info as JSON), `/qr` (PNG QR code of the VLESS link), `POST /rename` (renames the
-  connection label — see "Connection label" above). Plus one unauthenticated route on the
+  connection label — see "Connection label" above), `GET/POST /account` (change login — see
+  "Portal login" above). Plus one unauthenticated route on the
   plain-HTTP port only: `/.well-known/acme-challenge/{token}` (see "TLS / HTTPS"). All other
   connection details read from env vars set by `docker-compose.yaml`; there's no config file for the
   portal (except the connection label, written to `data/config.json`).

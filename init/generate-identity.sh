@@ -61,6 +61,8 @@ fi
 # generated separately — deleting identity.env to rotate the VLESS identity shouldn't also
 # force a new (self-signed) TLS certificate, and vice versa.
 mkdir -p "$TLS_DIR"
+# Holds the portal's own (hashed) login once the bootstrap credentials have been replaced.
+mkdir -p /etc/xray/portal
 if [ -f "$TLS_CERT" ] && [ -f "$TLS_KEY" ]; then
   echo "TLS certificate already present, keeping existing cert."
 else

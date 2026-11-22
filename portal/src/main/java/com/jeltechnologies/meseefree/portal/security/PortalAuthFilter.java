@@ -1,7 +1,6 @@
 package com.jeltechnologies.meseefree.portal.security;
 
 import com.jeltechnologies.meseefree.portal.config.AcmeProperties;
-import com.jeltechnologies.meseefree.portal.config.PortalProperties;
 import com.jeltechnologies.meseefree.portal.tls.AcmeChallengeController;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,14 +17,12 @@ public class PortalAuthFilter extends HttpFilter {
 
     public static final String AUTH_COOKIE_NAME = "portal_auth";
     private static final String LOGIN_PATH = "/login";
+    public static final String ACCOUNT_PATH = "/account";
 
-    private final PortalProperties properties;
     private final AcmeProperties acmeProperties;
     private final PortalCredentials credentials;
 
-    public PortalAuthFilter(PortalProperties properties, AcmeProperties acmeProperties,
-                             PortalCredentials credentials) {
-        this.properties = properties;
+    public PortalAuthFilter(AcmeProperties acmeProperties, PortalCredentials credentials) {
         this.acmeProperties = acmeProperties;
         this.credentials = credentials;
     }
@@ -46,11 +43,11 @@ public class PortalAuthFilter extends HttpFilter {
             return;
         }
 
-        if (!properties.authConfigured()) {
+        if (!credentials.authConfigured()) {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             res.setContentType("text/plain");
             res.getWriter().write("Portal authentication is not configured. Set PORTAL_USER_NAME and "
-                    + "PORTAL_PASSWORD in docker-compose.yaml and restart the stack.");
+                    + "PORTAL_PASSWORD in .env and recreate the portal (docker compose up -d portal).");
             return;
         }
 
@@ -66,6 +63,14 @@ public class PortalAuthFilter extends HttpFilter {
             // Presented explicitly (curl -u, scripts) — honor real Basic Auth semantics here,
             // no redirect to the HTML login page, so existing scripted/API usage keeps working.
             if (credentials.isValidBase64(header.substring(6))) {
+                if (credentials.mustChangeCredentials()) {
+                    // The bootstrap credentials from .env only unlock the change-credentials page.
+                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    res.setContentType("text/plain");
+                    res.getWriter().write("The initial portal credentials must be changed first. "
+                            + "Sign in to the portal in a browser to set your own username and password.");
+                    return;
+                }
                 chain.doFilter(req, res);
             } else {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -76,7 +81,12 @@ public class PortalAuthFilter extends HttpFilter {
         }
 
         String cookieValue = readCookie(req);
-        if (cookieValue != null && credentials.isValidBase64(cookieValue)) {
+        if (credentials.isValidSessionToken(cookieValue)) {
+            // Signed in with the bootstrap credentials: everything except changing them is off-limits.
+            if (credentials.mustChangeCredentials() && !ACCOUNT_PATH.equals(req.getRequestURI())) {
+                res.sendRedirect(ACCOUNT_PATH);
+                return;
+            }
             chain.doFilter(req, res);
             return;
         }
