@@ -71,14 +71,10 @@ Setup can be done within 15 minutes.
    very first sign-in: the portal then asks you to choose your own username and password, stores the
    password as a salted hash (never in plain text), and ignores the `.env` values from then on.
 
-6. **(Optional) Point a domain at it for a trusted HTTPS certificate.** The portal is HTTPS-only and
-   works out of the box with a self-signed certificate. Browsers can't issue a trusted certificate for
-   a bare IP address, so if you open the portal via `https://<VPS_IP>:16810` you'll always get a
-   warning about the self-signed certificate — this is completely normal and not a sign anything is
-   wrong, just click past it. If you'd rather not see that warning at all, point a domain's DNS A/AAAA
-   record at your VPS's IP and set `DOMAIN` in `.env`; the stack then automatically obtains and renews
-   a real certificate from Let's Encrypt (this needs port 80 reachable from the internet, which the
-   stack already publishes for you).
+6. **(Optional) Set a domain.** Point its DNS at your VPS and set `DOMAIN` in `.env` for a trusted
+   certificate. Without it, the browser shows a certificate warning — safe to click through. After
+   the first start, the trusted certificate can take a few minutes to arrive; until then you'll see
+   the same warning.
 
 7. **Run it:**
    ```
@@ -87,14 +83,18 @@ Setup can be done within 15 minutes.
    On first start, the stack automatically generates a unique client identity, REALITY keypair, and
    TLS certificate — no manual configuration required beyond the portal credentials above.
 
-8. **Open the portal.** In a browser, go to:
+8. **Open the portal** at `https://<DOMAIN or VPS_IP>:16810`. Log in with the credentials from
+   step 5, then choose your own username and password.
+
+9. **Restore to "factory settings".** Forgot your login? Delete `data/tls/portal-credentials.properties`
+   and run `docker compose restart portal`. You can then log in with the credentials in `.env` again and
+   choose a new username and password.
+
+   To start completely fresh, stop the stack, delete the `data` folder and start it again:
    ```
-   https://<VPS_IP>:16810
+   docker compose down
+   sudo rm -rf data
+   docker compose up -d
    ```
-   (or `https://<DOMAIN>:16810` if you set one in step 6). Without a configured `DOMAIN`, your browser
-   will warn about the self-signed certificate — that's expected and safe to click through, it's just
-   how browsers react to any IP-address URL, not a sign of a problem with your setup. Log in with the
-   `PORTAL_USER_NAME`/`PORTAL_PASSWORD` you set in step 5, then choose your own username and password
-   when prompted. You can change them again later via **Change login** at the bottom of the page. If
-   you ever forget them, delete `data/tls/portal-credentials.properties` and restart the portal
-   (`docker compose restart portal`) to sign in with the `.env` credentials again.
+   This creates new connection details, so every client must scan the new QR code (or import the new
+   link) to connect again.
