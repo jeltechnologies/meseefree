@@ -95,14 +95,15 @@ public class AcmeCertificateService {
             return;
         }
 
+        List<String> names = certificateNames(domain);
         try {
-            if (activeCertCoversAndIsFresh(domain)) {
-                log.debug("Active certificate already covers {} and is not due for renewal.", domain);
+            if (activeCertCoversAndIsFresh(names)) {
+                log.debug("Active certificate already covers {} and is not due for renewal.", names);
                 return;
             }
-            log.info("Requesting a Let's Encrypt certificate for {}", domain);
-            issueCertificate(domain);
-            log.info("Installed a new Let's Encrypt certificate for {}", domain);
+            log.info("Requesting a Let's Encrypt certificate for {}", names);
+            issueCertificate(names);
+            log.info("Installed a new Let's Encrypt certificate for {}", names);
         } catch (Exception e) {
             log.warn("Could not obtain/renew the Let's Encrypt certificate for {} — keeping the "
                     + "current certificate in place. Common causes: DOMAIN doesn't point at this "
@@ -110,14 +111,31 @@ public class AcmeCertificateService {
         }
     }
 
-    private boolean activeCertCoversAndIsFresh(String domain) {
+    /**
+     * DOMAIN itself, plus {@code www.<DOMAIN>} when that also points at this server — so the portal
+     * opens without a warning either way. If www is added to DNS later, the next daily check sees the
+     * current cert no longer covers every name and reissues it.
+     */
+    private List<String> certificateNames(String domain) {
+        if (domain.regionMatches(true, 0, "www.", 0, 4)) {
+            return List.of(domain);
+        }
+        String www = "www." + domain;
+        if (domainDnsCheckService.resolvesToThisServer(www)) {
+            return List.of(domain, www);
+        }
+        log.debug("{} does not point at this server, requesting a certificate for {} only.", www, domain);
+        return List.of(domain);
+    }
+
+    private boolean activeCertCoversAndIsFresh(List<String> names) {
         if (!Files.exists(ACTIVE_CERT)) {
             return false;
         }
         try (InputStream in = Files.newInputStream(ACTIVE_CERT)) {
             CertificateFactory factory = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) factory.generateCertificate(in);
-            boolean coversDomain = matchesDomain(cert, domain);
+            boolean coversDomain = coversAll(cert, names);
             boolean stillFresh = cert.getNotAfter().toInstant().isAfter(Instant.now().plus(RENEWAL_WINDOW));
             return coversDomain && stillFresh;
         } catch (IOException | CertificateException e) {
@@ -126,21 +144,16 @@ public class AcmeCertificateService {
         }
     }
 
-    private boolean matchesDomain(X509Certificate cert, String domain) throws CertificateException {
+    private boolean coversAll(X509Certificate cert, List<String> names) throws CertificateException {
         Collection<List<?>> sanEntries = cert.getSubjectAlternativeNames();
         if (sanEntries == null) {
             return false;
         }
-        for (List<?> entry : sanEntries) {
-            Object value = entry.get(1);
-            if (domain.equalsIgnoreCase(String.valueOf(value))) {
-                return true;
-            }
-        }
-        return false;
+        return names.stream().allMatch(name -> sanEntries.stream()
+                .anyMatch(entry -> name.equalsIgnoreCase(String.valueOf(entry.get(1)))));
     }
 
-    private void issueCertificate(String domain) throws Exception {
+    private void issueCertificate(List<String> names) throws Exception {
         Session session = new Session(acmeProperties.directoryUrl());
         KeyPair accountKeyPair = loadOrCreateKeyPair(ACCOUNT_KEY);
 
@@ -149,7 +162,7 @@ public class AcmeCertificateService {
                 .useKeyPair(accountKeyPair)
                 .create(session);
 
-        Order order = account.newOrder().domains(List.of(domain)).create();
+        Order order = account.newOrder().domains(names).create();
 
         for (Authorization authorization : order.getAuthorizations()) {
             completeHttp01Challenge(authorization);

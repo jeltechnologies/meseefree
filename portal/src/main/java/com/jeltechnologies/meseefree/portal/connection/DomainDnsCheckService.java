@@ -77,6 +77,22 @@ public class DomainDnsCheckService {
         }
     }
 
+    /**
+     * Whether {@code host} currently resolves (IPv4) to this server's public IP. Used to decide
+     * whether {@code www.<DOMAIN>} can be added to the certificate: an ACME order fails as a whole
+     * if any one name in it doesn't validate, so only names that point here are included.
+     */
+    public boolean resolvesToThisServer(String host) {
+        try {
+            return Arrays.stream(InetAddress.getAllByName(host))
+                    .filter(Inet4Address.class::isInstance)
+                    .map(InetAddress::getHostAddress)
+                    .anyMatch(connectionInfoProvider.publicIp()::equals);
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
     /** True when a domain is configured but doesn't currently resolve to this server's public IP. */
     public boolean dnsMismatch() {
         return dnsMismatch.get();

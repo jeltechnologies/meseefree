@@ -144,7 +144,11 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
     drives this with `acme4j` (Apache 2.0, `org.shredzone.acme4j:acme4j-client`): on
     `ApplicationReadyEvent` (on a background thread, so a slow/unreachable CA can never delay or
     fail startup — the self-signed cert is already serving by then) and daily via `@Scheduled`, it
-    checks whether `active.crt` already covers `domain` and has >30 days left; if not, it runs the
+    checks whether `active.crt` already covers every wanted name and has >30 days left — the
+    wanted names are `domain` plus `www.<domain>` when that also resolves to this server's public IP
+    (`DomainDnsCheckService#resolvesToThisServer`; skipped otherwise because one unvalidatable name
+    fails the whole order, and picked up automatically by the next daily check once www's DNS is
+    added); if not, it runs the
     full ACME order → HTTP-01 challenge → CSR → download flow and atomically replaces
     `active.crt`/`active.key` (`Files.move(..., ATOMIC_MOVE)`, so the SSL bundle watcher never sees
     a half-written pair). `tls/AcmeChallengeStore` + `tls/AcmeChallengeController` serve the
