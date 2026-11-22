@@ -3,25 +3,24 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#F7F5EF"/>
-<title>Me See Free - Sign in</title>
+<meta name="theme-color" content="#FFFFFF"/>
+<title>Me See Free</title>
 <style>
   :root{
-    --page:   #EFEAD9;
-    --paper:  #F7F5EF;
-    --ink:    #16213E;
-    --label:  #8A8471;
-    --accent: #B54E1D;
-    --line:   #D9D2BC;
+    --page:   #FFFFFF;
+    --paper:  #FFFFFF;
+    --ink:    #1F2937;
+    --label:  #6B7280;
+    --accent: #1D4ED8;
+    --line:   #E5E7EB;
     --error:  #B3261E;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+    --sans: Arial, Helvetica, "Liberation Sans", Arimo, sans-serif;
   }
 
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
     background:var(--page);
-    background-image:radial-gradient(ellipse at top, rgba(255,255,255,.5), transparent 60%);
     color:var(--ink);
     font-family:var(--sans);
     min-height:100vh;
@@ -35,8 +34,9 @@
     width:100%;
     max-width:340px;
     background:var(--paper);
-    border-radius:18px;
-    box-shadow:0 1px 2px rgba(22,33,62,.06), 0 18px 40px -20px rgba(22,33,62,.28);
+    border-radius:12px;
+    border:1px solid var(--line);
+    box-shadow:0 1px 3px rgba(17,24,39,.06), 0 8px 24px -12px rgba(17,24,39,.12);
     padding:28px 26px 26px;
   }
   h1{
@@ -78,7 +78,7 @@
     padding:10px;
     cursor:pointer;
   }
-  button:hover{background:#0f1730}
+  button:hover{background:#111827}
   .error{
     font-size:.78rem;
     color:var(--error);

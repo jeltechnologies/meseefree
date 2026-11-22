@@ -1,38 +1,49 @@
 # Me See Free
 
-A self-hosted VLESS+REALITY proxy, deployed in minutes with zero networking expertise.
+## Family-friendly uncensored internet
 
-Connect by scanning the QR code from your phone or desktop.
+Be ahead of upcoming regulation blocking VPN usage in the European Union, by scanning a QR code with your phone.
 
-![Portal connection info page](docs/screenshot-connection-info.jpg)
+<img src="docs/screenshot-scan.jpg" width="360" alt="Me See Free portal page with a QR code to scan and links to the phone apps"/>
+
+Me See Free is your own private VPN, completely under your control.
+
+China's Great Firewall is 30 years ahead of the European Union at blocking the internet — and it still can't stop people reaching the open internet. Every time regulators block a way to access the internet, people find a new way.
+
+Europe is following the same playbook. The UK's Online Safety Act already restricts access by identity and location, and the European Union is moving toward similar rules. And that is only the first step: specific sites are blocked first to "protect the children", then internet providers are pressured into blocking the VPNs people use to get around that.
+
+- **Easy access** — Install a VPN app on your phone and scan the QR code — you're connected. No settings to type in.
+- **Family Friendly** — When VPNs get blocked, people move to Tor — already happening in the UK. Tor also carries a lot of illegal activity alongside it. Me See Free also is not using Tor, on a server only you control.
+- **Battle-hardened** — China's Great Firewall is 30 years ahead of the European Union on this, but still can't stop Me See Free as of 2026 — you're ahead of anything regulators in Europe have even tried yet.
+- **Skip the age verification checks** — France and the UK now require age verification just to open many websites. Me See Free bypasses this, by moving your internet access from your home to an uncensored location.
+- **Remove dependency on VPN** — As people will start VPNs to bypass age verification, regulators will push to internet providers to block VPNs. Me See Free is made to bypass these blocks by disguising the connection to your VPN as normal internet traffic, making it hard to detect by the deep packet inspection used by internet providers and regulators.
+
+## How it works
+
+The latest Chinese anti-censorship technology uses **REALITY**. REALITY disguises your connection as an ordinary visit to a trusted site (e.g. the regulator's own servers), indistinguishable from millions of other people visiting that same site. There's nothing fake to notice and no unusual pattern to flag — which is why it holds up where earlier VPN protocols get detected and blocked. As of 2026, REALITY still works in China. You never actually connect to or use the camouflage domain — it's disguise only, not a real destination for your traffic.
+
+Me See Free runs a private VLESS+REALITY proxy on a server you control, disguising your connection as an ordinary visit to a trusted website so it can't be detected or blocked. The portal generates a unique identity and keypair on first start and gives you a ready-to-scan QR code and connection link — no manual networking configuration required.
+
+Your device connects to your own server on port 443 — the same port every HTTPS website uses. REALITY makes that connection indistinguishable from an ordinary visit to a real, trusted site: no fake certificate, no unusual pattern, nothing to fingerprint. Only someone holding your private key can actually reach the proxy hiding behind that disguise.
+
+<img src="docs/screenshot-connection-info.jpg" width="480" alt="Portal connection info page with example connection details and QR code"/>
+
 *Sample screenshot with fake data — this connection will not work. Your own portal will show real, working connection details.*
 
-## What it does
+## Credits
 
-Me See Free runs a private VLESS+REALITY proxy on a server you control, disguising your connection as an ordinary visit to a trusted website so it can't be detected or blocked. A web portal generates a unique identity and keypair on first start and gives you a ready-to-scan QR code and connection link — no manual networking configuration required.
+Me See Free doesn't implement a proxy protocol of its own — it's a setup and management layer around two existing open source projects:
 
-## Why
+- **[V2Ray](https://github.com/v2fly/v2ray-core)** (Project V), started in 2015 by a developer known as Victoria Raymond.
+- **[Xray-core](https://github.com/XTLS/Xray-core)** (Project X), the actively maintained fork this stack actually runs, created and maintained by **RPRX** — also the author of VLESS, XTLS, and REALITY.
 
-China's Great Firewall and the people routing around it have been locked in a cat-and-mouse game for 25+ years: every time regulators learn to detect a proxy technique, engineers ship the next one. **REALITY** is the current state of the art in that arms race — instead of hiding traffic, it disguises your connection as an ordinary visit to a trusted site (e.g. the regulator's own servers), indistinguishable from millions of other people visiting that same site. There's nothing fake to notice and no unusual pattern to flag — which is why it holds up where earlier VPN protocols get detected and blocked. You never actually connect to or use the camouflage domain — it's disguise only, not a real destination for your traffic.
+What Me See Free adds on top: automatic identity/keypair generation, HTTPS with Let's Encrypt, a status portal with QR code, and a 15-minute deployment — making Xray-core easy to set up and manage instead of hand-configuring it yourself.
 
-This isn't just a China problem. The UK's Online Safety Act already requires ISPs and platforms to restrict access by identity and location, and the EU is moving toward similar digital-identity and content-control rules. The playbook is always the same: block specific sites first to "protect the people", then pressure ISPs into blocking the VPNs people use to route around that. Conventional VPNs are easy to fingerprint and blocklist once a regulator decides to go after them. Running your own REALITY proxy now — while it's simple and unregulated — means you own the server and the disguise domain, and aren't dependent on a commercial VPN provider that can be pressured or blocked wholesale.
+This project is free and open source — self-hosted, no subscription, no accounts, and the code is yours to inspect.
 
-## What you get
+## Installation
 
-- A cleaner alternative to Tor, which a growing number of people in the UK are starting to use — Tor is also where a lot of shady and illegal activity lives, whereas this is just your own, family-friendly uncensored internet access.
-- A compete solutiom, which takes about 15 minutes to deploy, with miminal configuration.
-- A private VLESS+REALITY proxy, with a unique identity and keypair generated on first start — nothing shared, nothing hardcoded.
-- A web portal (HTTPS, with automatic Let's Encrypt support) with a ready-to-scan QR code and connection link.
-- Full ownership: your VPS, your IP, your camouflage domain — no third-party VPN provider to trust or be pressured.
-
-## What you need
-
-- A VPS in an uncensored country (e.g. [Vultr](https://www.vultr.com/) or [DigitalOcean](https://www.digitalocean.com/), US region). Cheapest tier is enough, around **€5/month**.
-- Docker installed on that VPS.
-
-The stack generates its own identity, keys, and config automatically on first start.
-
-## Deployment
+Setup can be done within 15 minutes.
 
 1. **Source the VPS.** Spin up a small cloud server at a provider of your choice (e.g. Vultr, DigitalOcean), in a jurisdiction without internet censorship. The cheapest tier is enough.
 
@@ -40,9 +51,12 @@ The stack generates its own identity, keys, and config automatically on first st
    ```
    ping <VPS_IP>
    ```
-   If the ping fails or times out, your ISP is likely already blocking that IP range. Go back to your provider, request a new IP (or destroy and recreate the VPS), and test again. If it keeps failing, try a different provider or region entirely. Don't proceed to the next step until this succeeds.
+   If the ping fails or times out, your internet provider is likely already blocking that IP range. Go back to your provider, request a new IP (or destroy and recreate the VPS), and test again. If it keeps failing, try a different provider or region entirely. Don't proceed to the next step until this succeeds.
 
-3. **Install Docker** on the VPS.
+3. **Install Docker** on the VPS, in one go with Docker's official install script:
+   ```
+   curl -fsSL https://get.docker.com | sh
+   ```
 
 4. **Download `docker-compose.yaml` and `.env`** into a folder on your VPS:
    ```
@@ -79,34 +93,3 @@ The stack generates its own identity, keys, and config automatically on first st
    will warn about the self-signed certificate — that's expected and safe to click through, it's just
    how browsers react to any IP-address URL, not a sign of a problem with your setup. Log in with the
    `PORTAL_USER_NAME`/`PORTAL_PASSWORD` you set in step 5.
-
-## How to connect
-
-The portal displays a QR code and connection link for your proxy.
-
-- **Phone (iOS / Android):** use a VLESS+REALITY-compatible client — this has been tested with **V2Box**, available on both the App Store and Google Play. Open the app and scan the QR code shown by the portal.
-- **Windows:** use **Hiddify**. Copy the connection link from the portal and paste it into the client.
-
-Other VLESS+REALITY-compatible clients will also work — V2Box and Hiddify are simply the ones this project has been verified against.
-
-### Using v2rayN
-
-v2rayN also works, with one catch: by default it may run your profile on the **sing-box** core, which
-has been observed to fail VLESS+REALITY+Vision connections against this stack's Xray-core server with
-a `reality verification failed` error on every single request — even when the UUID, public key, short
-ID, and server address in the profile are all correct. If you hit this, switch the profile (or the
-global default) to the **Xray core** instead — in v2rayN, check the core selection under Settings for
-this profile. This resolved the issue in testing; the server-side config needed no changes.
-
-## Credits
-
-Me See Free doesn't implement a proxy protocol of its own — it's a setup and management layer around two existing open source projects:
-
-- **[V2Ray](https://github.com/v2fly/v2ray-core)** (Project V), started in 2015 by a developer known as Victoria Raymond.
-- **[Xray-core](https://github.com/XTLS/Xray-core)** (Project X), the actively maintained fork this stack actually runs, created and maintained by **RPRX** — also the author of VLESS, XTLS, and REALITY.
-
-What Me See Free adds on top: automatic identity/keypair generation, HTTPS with Let's Encrypt, a status portal with QR code, and a 15-minute deployment — making Xray-core easy to set up and manage instead of hand-configuring it yourself.
-
-## Disclaimer
-
-This reflects the current state of the art as of July 2026. Censorship is a cat-and-mouse game — this will eventually stop working, and something else will replace it.
