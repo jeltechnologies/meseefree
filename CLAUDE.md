@@ -239,3 +239,8 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   portal (except the connection label, written to `data/config.json`).
 - `data/config.json` blocks private and China (`geoip:cn`) IP ranges via routing rules — keep
   this in mind if debugging connectivity that looks like a routing rejection rather than a proxy failure.
+- xray logging defaults to `"loglevel": "warning", "access": "none"` (`init/config.template.json`):
+  debug/access logs record every destination domain next to the client's real IP, which a privacy
+  proxy shouldn't keep by default. For troubleshooting, temporarily set `"loglevel": "debug"` (and
+  drop `"access": "none"`) in `data/config.json` and `docker compose restart xray`. The template only
+  applies to fresh installs — existing `data/config.json` files keep whatever they had.
