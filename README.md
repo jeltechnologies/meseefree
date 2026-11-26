@@ -62,6 +62,7 @@ Setup can be done within 15 minutes.
    ```
    curl -O https://raw.githubusercontent.com/jeltechnologies/meseefree/main/docker-compose.yaml
    curl -O https://raw.githubusercontent.com/jeltechnologies/meseefree/main/tune-conntrack.sh
+   chmod +x tune-conntrack.sh
    curl -o .env https://raw.githubusercontent.com/jeltechnologies/meseefree/main/.env.example
    ```
    `.env` is the file you'll actually edit in the next step — it's gitignored so your real
@@ -81,7 +82,7 @@ Setup can be done within 15 minutes.
    default. Once that table is full, connecting becomes extremely slow until you restart the stack.
    Run this once; it only changes settings that aren't configured yet and survives reboots:
    ```
-   sudo sh tune-conntrack.sh
+   sudo ./tune-conntrack.sh
    ```
 
 8. **Run it:**
