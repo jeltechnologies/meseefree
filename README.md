@@ -58,9 +58,10 @@ Setup can be done within 15 minutes.
    curl -fsSL https://get.docker.com | sh
    ```
 
-4. **Download `docker-compose.yaml` and `.env`** into a folder on your VPS:
+4. **Download `docker-compose.yaml`, `.env` and `tune-conntrack.sh`** into a folder on your VPS:
    ```
    curl -O https://raw.githubusercontent.com/jeltechnologies/meseefree/main/docker-compose.yaml
+   curl -O https://raw.githubusercontent.com/jeltechnologies/meseefree/main/tune-conntrack.sh
    curl -o .env https://raw.githubusercontent.com/jeltechnologies/meseefree/main/.env.example
    ```
    `.env` is the file you'll actually edit in the next step — it's gitignored so your real
@@ -76,17 +77,24 @@ Setup can be done within 15 minutes.
    the first start, the trusted certificate can take a few minutes to arrive; until then you'll see
    the same warning.
 
-7. **Run it:**
+7. **Raise the connection limits.** Small VPSes allow only a few thousand tracked connections by
+   default. Once that table is full, connecting becomes extremely slow until you restart the stack.
+   Run this once; it only changes settings that aren't configured yet and survives reboots:
+   ```
+   sudo sh tune-conntrack.sh
+   ```
+
+8. **Run it:**
    ```
    docker compose up -d
    ```
    On first start, the stack automatically generates a unique client identity, REALITY keypair, and
    TLS certificate — no manual configuration required beyond the portal credentials above.
 
-8. **Open the portal** at `https://<DOMAIN or VPS_IP>:16810`. Log in with the credentials from
+9. **Open the portal** at `https://<DOMAIN or VPS_IP>:16810`. Log in with the credentials from
    step 5, then choose your own username and password.
 
-9. **Restore to "factory settings".** Forgot your login? Delete `data/tls/portal-credentials.properties`
+10. **Restore to "factory settings".** Forgot your login? Delete `data/tls/portal-credentials.properties`
    and run `docker compose restart portal`. You can then log in with the credentials in `.env` again and
    choose a new username and password.
 
