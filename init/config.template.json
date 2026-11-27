@@ -19,6 +19,10 @@
       },
       "streamSettings": {
         "network": "tcp",
+        "sockopt": {
+          "tcpKeepAliveIdle": 60,
+          "tcpUserTimeout": 10000
+        },
         "security": "reality",
         "realitySettings": {
           "show": false,

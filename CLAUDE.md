@@ -239,6 +239,14 @@ XRAY_PORT=443 PORTAL_USER_NAME=admin PORTAL_PASSWORD=changeme java -jar target/p
   portal (except the connection label, written to `data/config.json`).
 - `data/config.json` blocks private and China (`geoip:cn`) IP ranges via routing rules — keep
   this in mind if debugging connectivity that looks like a routing rejection rather than a proxy failure.
+- **xray memory cap (upstream leak workaround).** Xray-core 26.3.27 through at least 26.11.9 leaks
+  sockets/memory when REALITY clients vanish without FIN/RST (XTLS/Xray-core#6684, closed "not
+  planned"; no release fix as of 2026-11-27). On 1 GB VPSes this swapped the whole host into a crawl.
+  Mitigations: `xray` has `mem_limit`/`memswap_limit: 450m` + `GOMEMLIMIT: 300MiB` in
+  `docker-compose.yaml` (OOM kills only xray; `restart: unless-stopped` revives it), the template's
+  inbound sets `sockopt.tcpKeepAliveIdle: 60` / `tcpUserTimeout: 10000` (only partially effective
+  per the issue; existing `data/config.json` files need it added by hand), and the portal JVM runs
+  with `-XX:MaxRAMPercentage=15`. Revisit once upstream ships the REALITY "Try pass RST" fix.
 - xray logging defaults to `"loglevel": "warning", "access": "none"` (`init/config.template.json`):
   debug/access logs record every destination domain next to the client's real IP, which a privacy
   proxy shouldn't keep by default. For troubleshooting, temporarily set `"loglevel": "debug"` (and

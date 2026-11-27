@@ -39,6 +39,17 @@ services:
       - "443:443/tcp"
     volumes:
       - ./data:/etc/xray
+    environment:
+      # Makes Go's garbage collector work harder as xray approaches this size, well
+      # before mem_limit below is reached.
+      GOMEMLIMIT: 300MiB
+    # Xray-core (26.3.27 through at least 26.11.9) leaks sockets and memory when clients
+    # vanish without closing their connection (XTLS/Xray-core#6684). Without a cap, on a
+    # 1 GB VPS the leak pushes the whole host into swap until everything crawls. With it,
+    # only xray gets OOM-killed and `restart: unless-stopped` brings it back in seconds.
+    # memswap_limit = mem_limit means xray can't use swap at all.
+    mem_limit: 450m
+    memswap_limit: 450m
     ulimits:
       nofile:
         soft: 65535

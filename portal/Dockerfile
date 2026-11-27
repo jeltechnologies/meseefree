@@ -9,4 +9,6 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /build/target/portal.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Cap the heap at 15% of RAM (the JVM default is 25%) so the portal leaves room for xray
+# on 1 GB servers.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=15", "-jar", "app.jar"]
